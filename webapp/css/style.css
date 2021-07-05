@@ -1,0 +1,24 @@
+/* Enter your custom styles here */
+
+/*.customOSClass {*/
+/*   font-weight: bold;*/
+/*}*/
+.borderTopBottomCssClass {
+	border-top: 1px solid #ccc;
+	border-bottom: 1px solid #ccc;
+}
+.sapOPSectionCss > .sapUxAPObjectPageSectionHeader {
+    display: none;
+}
+.sapUxAPBlockContainer {
+	padding: 0 !important;
+}
+.sapMSCCss {
+	border: 2px solid #ccc;
+}
+.sapMSplitContainerMaster {
+    width: 15rem !important;
+}
+.sapMListTblCell {
+    /*padding: 0.2rem .2em !important;*/
+}

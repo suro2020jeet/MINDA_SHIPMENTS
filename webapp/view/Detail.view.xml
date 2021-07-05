@@ -1,0 +1,281 @@
+<mvc:View displayBlock="true" controllerName="com.minda.Shipments.controller.Detail" height="100%" xmlns="sap.uxap"
+	xmlns:mvc="sap.ui.core.mvc" xmlns:m="sap.m" xmlns:f="sap.f" xmlns:form="sap.ui.layout.form" xmlns:layout="sap.ui.layout"
+	xmlns:core="sap.ui.core">
+	<ObjectPageLayout busy="{listViewModel>/busy}" id="ObjectPageLayout" showTitleInHeaderContent="true" alwaysShowContentHeader="false"
+		preserveHeaderStateOnScroll="false" headerContentPinnable="true" isChildPage="true" upperCaseAnchorBar="false" showFooter="false">
+		<headerTitle>
+			<ObjectPageDynamicHeaderTitle>
+				<expandedHeading>
+					<m:Title text="{detailViewModel>/detailViewTitle}" wrapping="true" class="sapUiSmallMarginEnd"/>
+				</expandedHeading>
+				<snappedHeading>
+					<m:FlexBox wrap="Wrap" fitContainer="true" alignItems="Center">
+						<m:FlexBox wrap="NoWrap" fitContainer="true" alignItems="Center" class="sapUiTinyMarginEnd">
+							<!--<f:Avatar src="../../../../../../../{products>ProductPicUrl}" displaySize="S" displayShape="Square"/>-->
+							<m:Title text="{detailViewModel>/detailViewTitle}" wrapping="true" class="sapUiTinyMarginEnd"/>
+						</m:FlexBox>
+					</m:FlexBox>
+				</snappedHeading>
+				<expandedContent>
+					<m:Label visible="{detailViewModel>/allButtonsVisible}"
+						text="Invoice Date: {path: 'detailViewModel>/details/InvoiceDate', formatter: '.formatter.setDate'}"/>
+				</expandedContent>
+				<snappedContent>
+					<m:Label visible="{detailViewModel>/allButtonsVisible}"
+						text="Invoice Date: {path: 'detailViewModel>/details/InvoiceDate', formatter: '.formatter.setDate'}"/>
+				</snappedContent>
+				<snappedTitleOnMobile>
+					<m:Title text="{detailViewModel>/detailViewTitle}"/>
+				</snappedTitleOnMobile>
+				<actions>
+					<ObjectPageHeaderActionButton hideText="false" type="Transparent" icon="sap-icon://request" text="Edit Details"
+						visible="{parts: [{path: 'detailViewModel>/details/Status'}, {path: 'detailViewModel>/allButtonsVisible'}], formatter: '.formatter.setVisibleButtons'}"
+						press="onPressEdit"/>
+					<ObjectPageHeaderActionButton visible="{= ${device>/system/phone}? true:false}" hideText="true" type="Transparent" icon="sap-icon://decline"
+						press="handleClose" tooltip="Go to Master List"/>
+					<ObjectPageHeaderActionButton hideText="false" text="MARK SHIP" type="Success"
+						visible="{parts: [{path: 'detailViewModel>/details/Status'}, {path: 'detailViewModel>/allButtonsVisible'}], formatter: '.formatter.setVisibleButtons'}"
+						press="onPressMarkShip"/>
+					<ObjectPageHeaderActionButton hideText="false" text="DELETE" type="Reject" press="onPressDeleteAsn"
+						visible="{parts: [{path: 'detailViewModel>/details/Status'}, {path: 'detailViewModel>/allButtonsVisible'}], formatter: '.formatter.setVisibleButtons'}"/>
+					<ObjectPageHeaderActionButton visible="{detailViewModel>/allButtonsVisible}" hideText="false" text="Print ASN" type="Emphasized"
+						press="onPressPrintASN"/>
+					<ObjectPageHeaderActionButton visible="{detailViewModel>/allButtonsVisible}" hideText="false" text="Print BINBAG" type="Emphasized"
+						press="onPressPrintBinBag"/>
+					<ObjectPageHeaderActionButton visible="{detailViewModel>/allButtonsVisible}" hideText="false" icon="sap-icon://refresh" type="Emphasized"
+						press="onPressRefresh"/>
+					<ObjectPageHeaderActionButton icon="sap-icon://excel-attachment" type="Emphasized" hideText="false" text="Export to excel"
+						press="onPressDownload" visible="{detailViewModel>/exportButtonVisible}"/>
+				</actions>
+			</ObjectPageDynamicHeaderTitle>
+		</headerTitle>
+		<headerContent>
+			<m:FlexBox wrap="Wrap" visible="{detailViewModel>/felxBoxVisible}">
+				<!--<m:Avatar src="sap-icon://shipping-status" backgroundColor="Random" displaySize="L" class="sapUiTinyMarginEnd"/>-->
+				<layout:VerticalLayout class="sapUiSmallMarginEnd">
+					<m:ObjectStatus class="customOSClass" title="ASN Id" text="{detailViewModel>/details/AsnId}"/>
+					<m:ObjectStatus class="customOSClass" title="Agreement Id" text="{detailViewModel>/details/Item/results/0/AgreementId}"/>
+					<m:ObjectStatus class="customOSClass" title="Delivery Plant" text="{detailViewModel>/details/PlantName}"/>
+					<m:ObjectStatus class="customOSClass" title="ASN Created On"
+						text="{path: 'detailViewModel>/details/InvoiceDate', formatter: '.formatter.setDate'}"/>
+				</layout:VerticalLayout>
+				<layout:VerticalLayout class="sapUiSmallMarginEnd">
+					<m:ObjectStatus class="customOSClass" title="ASN Status" text="{path: 'detailViewModel>/details/Status', formatter: '.formatter.setStatus'}"
+						state="{path: 'detailViewModel>/details/Status', formatter: '.formatter.setState'}"/>
+					<m:ObjectStatus class="customOSClass" title="Transporter Name" text="{detailViewModel>/details/TransporterName}"/>
+					<m:ObjectStatus class="customOSClass" title="AWB Number" text="{detailViewModel>/details/PmntTerms}"/>
+				</layout:VerticalLayout>
+				<layout:VerticalLayout class="sapUiSmallMarginEnd">
+					<layout:layoutData>
+						<ObjectPageHeaderLayoutData visibleS="false" visibleM="true"/>
+					</layout:layoutData>
+					<m:ObjectStatus class="customOSClass" title="Driver Name" text="{detailViewModel>/details/DriverName}"/>
+					<m:ObjectStatus class="customOSClass" title="Driver Phone" text="{detailViewModel>/details/DriverContactNumber}"/>
+					<m:ObjectStatus class="customOSClass" title="Vendor Name" text="{detailViewModel>/details/VendorName}"/>
+				</layout:VerticalLayout>
+			</m:FlexBox>
+		</headerContent>
+		<sections>
+			<ObjectPageSection class="sapOPSectionCss">
+				<subSections>
+					<ObjectPageSubSection>
+						<blocks>
+							<m:VBox >
+								<m:OverflowToolbar visible="{detailViewModel>/singleInvoiceTableVisible}">
+									<m:content>
+										<m:Title text="{detailViewModel>/invoiceTableDataTitle}"/>
+										<m:ToolbarSpacer/>
+										<m:SearchField width="25%" placeholder="Search Material Code..." liveChange="onMaterialCodeSearch"/>
+										<m:SearchField width="25%" placeholder="Search Material Name..." liveChange="onMaterialNameSearch"/>
+									</m:content>
+								</m:OverflowToolbar>
+								<m:VBox class="sapMSCCss" visible="{detailViewModel>/singleInvoiceTableVisible}">
+									<m:ScrollContainer width="100%" horizontal="true" >
+										<m:Table id="table" items="{detailViewModel>/details/Item/results}" sticky="HeaderToolbar,ColumnHeaders,InfoToolbar"
+											selectionChange="onSelectionChange">
+											<m:columns>
+												<m:Column hAlign="Center" demandPopin="true" minScreenWidth="Phone">
+													<m:Label design="Bold" text="MATERIAL CODE" wrapping="true"/>
+												</m:Column>
+												<m:Column hAlign="Center" demandPopin="true" minScreenWidth="Phone">
+													<m:Label design="Bold" text="MATERIAL NAME" wrapping="true"/>
+												</m:Column>
+												<m:Column hAlign="Center" demandPopin="true" minScreenWidth="Tablet">
+													<m:Label design="Bold" text="SCHEDULED DATE" wrapping="true"/>
+												</m:Column>
+												<m:Column hAlign="Center" demandPopin="true" minScreenWidth="Desktop">
+													<m:Label design="Bold" text="SHIPPING QTY." wrapping="true"/>
+												</m:Column>
+												<m:Column hAlign="Center" demandPopin="true" minScreenWidth="Desktop">
+													<m:Label design="Bold" text="VALUE" wrapping="true"/>
+												</m:Column>
+												<m:Column hAlign="Center" demandPopin="true" minScreenWidth="Desktop">
+													<m:Label design="Bold" text="GE NO." wrapping="true"/>
+												</m:Column>
+												<m:Column hAlign="Center" demandPopin="true" minScreenWidth="Desktop" width="15rem"></m:Column>
+											</m:columns>
+											<m:items>
+												<m:ColumnListItem type="Inactive">
+													<m:cells>
+														<m:Text text="{detailViewModel>Material}"/>
+														<m:Text text="{detailViewModel>MaterialName}"/>
+														<m:Text text="{path: 'detailViewModel>DeliveryDate', formatter: '.formatter.setDate'}"/>
+														<m:Text text="{detailViewModel>Quantity} {detailViewModel>Uom}"/>
+														<m:Text text="{path: 'detailViewModel>AmountBeforeTaxes', formatter: '.formatter.concatRupeeSign'}"/>
+														<m:Text text="{path: 'detailViewModel>/details/StatusReference', formatter: '.formatter.setGENO'}"/>
+													</m:cells>
+												</m:ColumnListItem>
+											</m:items>
+										</m:Table>
+									</m:ScrollContainer>
+									<m:HBox class="sapUiTinyMarginTop" width="98%" visible="{detailViewModel>/subTotalVisible}">
+										<m:HBox width="{= ${device>/system/phone}? '30%':'70%'}"></m:HBox>
+										<m:VBox width="{= ${device>/system/phone}? '70%':'30%'}">
+											<m:HBox justifyContent="SpaceBetween">
+												<m:Label design="Bold" text="SUB TOTAL:"/>
+												<m:Text text="{path: 'detailViewModel>/subTotal', formatter: '.formatter.concatRupeeSign'}"/>
+											</m:HBox>
+											<m:VBox class="borderTopBottomCssClass sapUiTinyMarginTop sapUiTinyMarginBottom">
+												<m:HBox class="sapUiTinyMarginTop" justifyContent="SpaceBetween">
+													<m:Label text="CGST:"/>
+													<m:Text text="{detailViewModel>/otherValues}"/>
+												</m:HBox>
+												<m:HBox justifyContent="SpaceBetween">
+													<m:Label text="SGST:"/>
+													<m:Text text="{detailViewModel>/otherValues}"/>
+												</m:HBox>
+												<m:HBox justifyContent="SpaceBetween">
+													<m:Label text="IGST:"/>
+													<m:Text text="{path: 'detailViewModel>/details/IgstAmnt', formatter: '.formatter.concatRupeeSign'}"/>
+												</m:HBox>
+												<m:HBox justifyContent="SpaceBetween">
+													<m:Label text="TOTAL TAX:"/>
+													<m:Text text="{path: 'detailViewModel>/details/IgstAmnt', formatter: '.formatter.concatRupeeSign'}"/>
+												</m:HBox>
+												<m:HBox justifyContent="SpaceBetween">
+													<m:Label design="Bold" text="TCS:"/>
+													<m:Text text="{detailViewModel>/otherValues}"/>
+												</m:HBox>
+											</m:VBox>
+											<m:VBox>
+												<m:HBox justifyContent="SpaceBetween">
+													<m:Label text="OTHER CHARGES:"/>
+													<m:Text text="{detailViewModel>/otherValues}"/>
+												</m:HBox>
+												<m:HBox justifyContent="SpaceBetween">
+													<m:Label design="Bold" text="TOTAL SHIPMENT VALUE:"/>
+													<m:Text text="{path: 'detailViewModel>/details/TotalAmount', formatter: '.formatter.concatRupeeSign'}"/>
+												</m:HBox>
+											</m:VBox>
+										</m:VBox>
+									</m:HBox>
+								</m:VBox>
+								<m:VBox visible="{detailViewModel>/allInvoiceTableVisible}">
+									<m:OverflowToolbar>
+										<m:content>
+											<m:Title text="{detailViewModel>/invoiceTableDataTitle}"/>
+											<m:ToolbarSpacer/>
+											<m:SearchField width="18%" placeholder="Search Material Code..." liveChange="onMaterialCodeOnAllOrederSearch"/>
+											<m:SearchField width="18%" placeholder="Search Material Name..." liveChange="onMaterialNameOnAllOrederSearch"/>
+											<m:SearchField width="18%" placeholder="Search Invoice No..." liveChange="onInvoiceNoSearch"/>
+											<m:SearchField width="18%" placeholder="Search ASN Id..." liveChange="onAsnIdSearch"/>
+											<m:Select change="onChangeStatus" forceSelection="false" selectedKey="{comboBoxModel>/Selected}"
+												items="{ path: 'comboBoxModel>/items', sorter: { path: 'Name' } }">
+												<core:Item key="{comboBoxModel>Id}" text="{comboBoxModel>Name}"/>
+											</m:Select>
+										</m:content>
+									</m:OverflowToolbar>
+									<m:ScrollContainer vertical="true" width="100%" height="550px" horizontal="true" class="sapMSCCss">
+										<m:Table width="180%" visible="{detailViewModel>/allInvoiceTableVisible}" id="table1" items="{detailViewModel>/allOrderItems}"
+											sticky="HeaderToolbar,ColumnHeaders,InfoToolbar" selectionChange="onSelectionChange">
+											<m:columns>
+												<m:Column demandPopin="true" minScreenWidth="Phone">
+													<m:Label design="Bold" text="MATERIAL CODE" wrapping="true"/>
+												</m:Column>
+												<m:Column demandPopin="true" minScreenWidth="Phone">
+													<m:Label design="Bold" text="MATERIAL NAME" wrapping="true"/>
+												</m:Column>
+												<m:Column demandPopin="true" minScreenWidth="Tablet">
+													<m:Label design="Bold" text="INVOICE NO" wrapping="true"/>
+												</m:Column>
+												<m:Column demandPopin="true" minScreenWidth="Desktop">
+													<m:Label design="Bold" text="ORDER ID" wrapping="true"/>
+												</m:Column>
+												<m:Column demandPopin="true" minScreenWidth="Desktop">
+													<m:Label design="Bold" text="ASN ID" wrapping="true"/>
+												</m:Column>
+												<m:Column demandPopin="true" minScreenWidth="Desktop">
+													<m:Label design="Bold" text="GE NO." wrapping="true"/>
+												</m:Column>
+												<m:Column demandPopin="true" minScreenWidth="Tablet">
+													<m:Label design="Bold" text="SCHEDULED DELIVERY DATE" wrapping="true"/>
+												</m:Column>
+												<m:Column demandPopin="true" minScreenWidth="Desktop">
+													<m:Label design="Bold" text="SHIPPING QTY." wrapping="true"/>
+												</m:Column>
+												<m:Column demandPopin="true" minScreenWidth="Desktop">
+													<m:Label design="Bold" text="STATUS" wrapping="true"/>
+												</m:Column>
+												<m:Column demandPopin="true" minScreenWidth="Desktop">
+													<m:Label design="Bold" text="TRANSPORTER NAME" wrapping="true"/>
+												</m:Column>
+												<m:Column demandPopin="true" minScreenWidth="Desktop">
+													<m:Label design="Bold" text="AWB NUMBER" wrapping="true"/>
+												</m:Column>
+												<m:Column demandPopin="true" minScreenWidth="Desktop">
+													<m:Label design="Bold" text="DRIVER NAME" wrapping="true"/>
+												</m:Column>
+												<m:Column demandPopin="true" minScreenWidth="Desktop">
+													<m:Label design="Bold" text="DRIVER PHONE" wrapping="true"/>
+												</m:Column>
+												<m:Column demandPopin="true" minScreenWidth="Desktop">
+													<m:Label design="Bold" text="PLANT NAME" wrapping="true"/>
+												</m:Column>
+												<m:Column demandPopin="true" minScreenWidth="Desktop">
+													<m:Label design="Bold" text="VENDOR NAME" wrapping="true"/>
+												</m:Column>
+											</m:columns>
+											<m:items>
+												<m:ColumnListItem type="Inactive">
+													<m:cells>
+														<m:Text text="{detailViewModel>Material}"/>
+														<m:Text text="{detailViewModel>MaterialName}"/>
+														<m:Text text="-"/>
+														<m:Text text="{detailViewModel>AgreementId}"/>
+														<m:Text text="{detailViewModel>AsnId}"/>
+														<m:Text text="-"/>
+														<m:Text text="{path: 'detailViewModel>DeliveryDate', formatter: '.formatter.setDate'}"/>
+														<m:Text text="{detailViewModel>Quantity} {detailViewModel>Uom}"/>
+														<m:Text text="-"/>
+														<m:Text text="-"/>
+														<m:Text text="-"/>
+														<m:Text text="-"/>
+														<m:Text text="-"/>
+														<m:Text text="-"/>
+														<m:Text text="-"/>
+													</m:cells>
+												</m:ColumnListItem>
+											</m:items>
+										</m:Table>
+									</m:ScrollContainer>
+								</m:VBox>
+							</m:VBox>
+						</blocks>
+					</ObjectPageSubSection>
+				</subSections>
+			</ObjectPageSection>
+		</sections>
+		<footer>
+			<m:OverflowToolbar>
+				<m:ToolbarSpacer/>
+				<m:Button text="MARK SHIP" type="Success" visible="{path: 'detailViewModel>/details/Status', formatter: '.formatter.setVisibleButtons'}"
+					press="onPressMarkShip"/>
+				<m:Button text="DELETE" type="Reject" visible="{path: 'detailViewModel>/details/Status', formatter: '.formatter.setVisibleButtons'}"
+					press="onPressDeleteAsn"/>
+				<m:Button text="Print ASN" type="Emphasized" press="onPressPrintASN"/>
+				<m:Button text="Print BINBAG" type="Emphasized" press="onPressPrintBinBag"/>
+				<m:Button icon="sap-icon://refresh" type="Emphasized" press="onPressRefresh"/>
+			</m:OverflowToolbar>
+		</footer>
+	</ObjectPageLayout>
+</mvc:View>
