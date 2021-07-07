@@ -12,7 +12,7 @@
 			</OverflowToolbar>
 		</subHeader>
 		<content>
-			<Table mode="SingleSelectMaster" itemPress="onAllInvoicePress">
+			<Table mode="SingleSelectMaster" itemPress="onAllInvoicePress" visible="{= !${listViewModel>/showAdvancedSearch}}">
 				<columns>
 					<Column ></Column>
 				</columns>

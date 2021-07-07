@@ -25,11 +25,31 @@ sap.ui.define([
 				sSelected: false,
 				asnId: "",
 				invoice: "",
-				columListItemSelected: false
+				columListItemSelected: false,
+				plant: "1031",
+				vendor: "0000200323",
+				showAdvancedSearch: false
 			}), "listViewModel");
 			this.oRouter = this.getOwnerComponent().getRouter();
 			this._bDescendingSort = false;
-			this._getUserDetails();
+			if (!sap.ushell) {} else {
+				if (sap.ui.getCore().plants != undefined) {
+					if (sap.ui.getCore().plants.hasOwnProperty("plant")) {
+						if (sap.ui.getCore().plants.plant) {
+							this.getOwnerComponent().getModel("listViewModel").setProperty("/plant", sap.ui.getCore().plants.plant);
+							this._getMasterListData(this.getOwnerComponent().getModel("listViewModel").getProperty("/PageNumber"));
+						}
+					}
+					sap.ui.getCore().plants.registerListener(function (val) {
+						if (val) {
+							this.getOwnerComponent().getModel("listViewModel").setProperty("/plant", val);
+							this._getMasterListData(this.getOwnerComponent().getModel("listViewModel").getProperty("/PageNumber"));
+						}
+					}.bind(this));
+				}
+			}
+			// this._getUserDetails();
+			// this._getMasterListData(this.getOwnerComponent().getModel("listViewModel").getProperty("/PageNumber"));
 		},
 
 		onListItemPress: function (oEvent) {
@@ -56,8 +76,8 @@ sap.ui.define([
 				oSorter = new Sorter("InvoiceNo", this._bDescendingSort);
 			oBinding.sort(oSorter);
 		},
-		onAllInvoicePress: function(){
-			for(var i = 0; i < this.byId("table").getItems().length; i++){
+		onAllInvoicePress: function () {
+			for (var i = 0; i < this.byId("table").getItems().length; i++) {
 				this.byId("table").getItems()[i].setSelected(false);
 			}
 			this.getOwnerComponent().getModel("listViewModel").setProperty("/columListItemSelected", true);
@@ -138,33 +158,38 @@ sap.ui.define([
 			this._oDialog.open();
 		},
 		onPressApply: function () {
-			var filter = [];
-			if (this.getOwnerComponent().getModel("listViewModel").getProperty("/material") != "") {
-				filter.push(new Filter("MaterialName", FilterOperator.Contains, this.getOwnerComponent().getModel("listViewModel").getProperty(
-					"/material")));
-			}
-			if (this.getOwnerComponent().getModel("listViewModel").getProperty("/orderId") != "") {
-				filter.push(new Filter("AgreementId", FilterOperator.Contains, this.getOwnerComponent().getModel("listViewModel").getProperty(
-					"/orderId")));
-			}
-			if (this.getOwnerComponent().getModel("listViewModel").getProperty("/asnId") != "") {
-				filter.push(new Filter("AsnId", FilterOperator.Contains, this.getOwnerComponent().getModel("listViewModel").getProperty("/asnId")));
-			}
-			if (this.getOwnerComponent().getModel("listViewModel").getProperty("/invoice") != "") {
-				filter.push(new Filter("InvoiceNo", FilterOperator.Contains, this.getOwnerComponent().getModel("listViewModel").getProperty(
-					"/invoice")));
-			}
-			if (this.getOwnerComponent().getModel("listViewModel").getProperty("/cSelected")) {
-				filter.push(new Filter("Status", FilterOperator.EQ, "Created"));
-			}
-			if (this.getOwnerComponent().getModel("listViewModel").getProperty("/geSelected")) {
-				filter.push(new Filter("Status", FilterOperator.EQ, "X"));
-			}
-			if (this.getOwnerComponent().getModel("listViewModel").getProperty("/sSelected")) {
-				filter.push(new Filter("Status", FilterOperator.EQ, "Shipped"));
-			}
-			this.getView().byId("table").getBinding("items").filter(filter, "Application");
 			this._oDialog.close();
+			if (this.getOwnerComponent().getModel("listViewModel").getProperty("/showAdvancedSearch")) {
+				this._getMasterListData(this.getOwnerComponent().getModel("listViewModel").getProperty("/PageNumber"));
+			} else {
+				var filter = [];
+				if (this.getOwnerComponent().getModel("listViewModel").getProperty("/material") != "") {
+					filter.push(new Filter("MaterialName", FilterOperator.Contains, this.getOwnerComponent().getModel("listViewModel").getProperty(
+						"/material")));
+				}
+				if (this.getOwnerComponent().getModel("listViewModel").getProperty("/orderId") != "") {
+					filter.push(new Filter("AgreementId", FilterOperator.Contains, this.getOwnerComponent().getModel("listViewModel").getProperty(
+						"/orderId")));
+				}
+				if (this.getOwnerComponent().getModel("listViewModel").getProperty("/asnId") != "") {
+					filter.push(new Filter("AsnId", FilterOperator.Contains, this.getOwnerComponent().getModel("listViewModel").getProperty("/asnId")));
+				}
+				if (this.getOwnerComponent().getModel("listViewModel").getProperty("/invoice") != "") {
+					filter.push(new Filter("InvoiceNo", FilterOperator.Contains, this.getOwnerComponent().getModel("listViewModel").getProperty(
+						"/invoice")));
+				}
+				if (this.getOwnerComponent().getModel("listViewModel").getProperty("/cSelected")) {
+					filter.push(new Filter("Status", FilterOperator.EQ, "Created"));
+				}
+				if (this.getOwnerComponent().getModel("listViewModel").getProperty("/geSelected")) {
+					filter.push(new Filter("Status", FilterOperator.EQ, "X"));
+				}
+				if (this.getOwnerComponent().getModel("listViewModel").getProperty("/sSelected")) {
+					filter.push(new Filter("Status", FilterOperator.EQ, "Shipped"));
+				}
+				this.getView().byId("table").getBinding("items").filter(filter, "Application");
+			}
+
 		},
 		onPressCloseDialog: function () {
 			this._oDialog.close();
@@ -179,6 +204,37 @@ sap.ui.define([
 			this.getOwnerComponent().getModel("listViewModel").setProperty("/sSelected", false);
 			this.getView().byId("table").getBinding("items").filter([], "Application");
 		},
+		onChangePlant: function (oEvent) {
+			debugger;
+			this.getOwnerComponent().getModel("listViewModel").setProperty("/plant", oEvent.getSource().getSelectedItem().getKey());
+			jQuery.ajax({
+				type: "GET",
+				contentType: "application/x-www-form-urlencoded",
+				headers: {
+					"Authorization": "Basic NDMyYjNjZjMtNGE1OS0zOWRiLWEwMWMtYzM5YzhjNGYyNTNkOjk2NTJmOTM0LTkwMmEtMzE1MS05OWNiLWVjZTE1MmJkZGQ1NA=="
+				},
+				url: "/token/accounts/c70391893/plant/vendors?plantId=" + oEvent.getSource().getSelectedItem().getKey(),
+				dataType: "json",
+				async: false,
+				success: function (data, textStatus, jqXHR) {
+					this.plants = data.plants;
+					this.getOwnerComponent().setModel(new JSONModel(data), "vendorModel");
+				}.bind(this),
+				error: function (data) {
+					// console.log("error", data);
+				}
+			});
+		},
+		onChangeVendor: function (oEvent) {
+			this.getOwnerComponent().getModel("listViewModel").setProperty("/vendor", oEvent.getSource().getSelectedItem().getKey());
+		},
+		onAdvancedSearchPress: function () {
+			if (!this._oDialog) {
+				this._oDialog = sap.ui.xmlfragment("com.minda.Schedules.fragments.AdvancedSearch", this);
+				this.getView().addDependent(this._oDialog);
+			}
+			this._oDialog.open();
+		}
 	});
 
 });
